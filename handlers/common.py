@@ -23,8 +23,8 @@ async def start(message: Message):
 
 @router.message(lambda msg: msg.text == "👤 Мой аккаунт")
 async def my_account(message: Message):
-    async with SessionLocal() as session:
-        result = await session.execute(
+    with SessionLocal() as session:
+        result = session.execute(
             User.__table__.select().where(User.telegram_id == message.from_user.id)
         )
         user = result.first()
