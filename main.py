@@ -11,7 +11,7 @@ from aiogram.fsm.strategy import FSMStrategy
 from config import BOT_TOKEN
 from database.db import engine
 from database.models import Base
-from handlers import instruction, payment, admin, common
+from handlers import instruction, payment, admin, common, topup
 from scheduler.tasks import cleanup_expired_users, delete_empty_servers
 
 print("Creating tables...")
@@ -32,6 +32,7 @@ async def start_bot():
     dp.include_router(common.router)
     dp.include_router(instruction.router)
     dp.include_router(payment.router)
+    dp.include_router(topup.router)
     dp.include_router(admin.router)
 
     await dp.start_polling(bot)

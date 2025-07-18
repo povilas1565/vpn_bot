@@ -7,40 +7,50 @@ class Base(DeclarativeBase):
 
 class User(Base):
     __tablename__ = "users"
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(unique=True)
+    telegram_id: Mapped[int] = mapped_column(unique=True, nullable=False)
     start_date: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.utcnow)
     expire_date: Mapped[datetime.datetime]
     status: Mapped[str] = mapped_column(default="active")  # active / expired
+    balance: Mapped[float] = mapped_column(default=0.0)
+
     server_id: Mapped[int] = mapped_column(ForeignKey("servers.id"))
-    vpn_key = relationship("VPNKey", back_populates="user")
-    payments = relationship("Payment", back_populates="user")
+    server: Mapped["Server"] = relationship(back_populates="users")
+
+    vpn_keys: Mapped[list["VPNKey"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    payments: Mapped[list["Payment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 class Server(Base):
     __tablename__ = "servers"
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    ip: Mapped[str]
-    ssh_user = Column(String, nullable=False)          # <- добавляем
-    ssh_password = Column(String, nullable=False)      # <- добавляем
-    type: Mapped[str]  # Base / Silver / Gold
+    ip: Mapped[str] = mapped_column(nullable=False)
+    ssh_user: Mapped[str] = mapped_column(nullable=False)
+    ssh_password: Mapped[str] = mapped_column(nullable=False)
+    type: Mapped[str] = mapped_column(nullable=False)  # Base / Silver / Gold
     users_count: Mapped[int] = mapped_column(default=0)
-    max_users: Mapped[int]
+    max_users: Mapped[int] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(default="active")
+
+    users: Mapped[list["User"]] = relationship(back_populates="server", cascade="all, delete")
 
 class VPNKey(Base):
     __tablename__ = "vpn_keys"
+
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     private_key: Mapped[str]
     public_key: Mapped[str]
     allowed_ip: Mapped[str]
 
-    user = relationship("User", back_populates="vpn_key")
+    user: Mapped["User"] = relationship(back_populates="vpn_keys")
 
 class Payment(Base):
     __tablename__ = "payments"
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    ip = Column(String, unique=True, nullable=False)
+    ip: Mapped[str] = mapped_column(unique=True, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     type: Mapped[str]
     amount: Mapped[float]
@@ -48,4 +58,4 @@ class Payment(Base):
     status: Mapped[str]  # pending / confirmed / failed
     created_at: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.utcnow)
 
-    user = relationship("User", back_populates="payments")
+    user: Mapped["User"] = relationship(back_populates="payments")

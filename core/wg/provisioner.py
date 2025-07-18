@@ -1,5 +1,4 @@
 ﻿import datetime
-
 import requests
 
 from core.ssh.remote_wg import add_peer_to_wireguard
@@ -7,43 +6,42 @@ from core.wg.generator import generate_key_pair, build_client_config, save_confi
 from database.db import SessionLocal
 from database.models import Server, User, VPNKey
 
-
 VEESP_API_KEY = "ВАШ_API_КЛЮЧ"
+
 async def create_vpn_access(user_id: int, tariff: str):
     async with SessionLocal() as session:
-        # Шаг 1. Найти сервер с доступными слотами
+        # Шаг 1. Найти сервер
         servers = await session.execute(
-            Server.__table__.select().where(Server.type == tariff.capitalize(), Server.users_count < Server.max_users)
+            Server.__table__.select().where(
+                Server.type == tariff.capitalize(),
+                Server.users_count < Server.max_users
+            )
         )
-        server = servers.first()
+        server_row = servers.first()
+        server = server_row[0] if server_row else None
 
-        # Если нет свободных серверов — создать новый
+        # Шаг 2. Если нет — создать
         if not server:
             try:
                 server_info = create_new_server_veesp(tariff.lower())
-                new_server = Server(
+                server = Server(
                     ip=server_info["ip"],
-                    ssh_user="root",  # обычно root, или взять из server_info если есть
-                    ssh_password=server_info["password"],  # взять из ответа API
+                    ssh_user="root",
+                    ssh_password=server_info["password"],
                     type=tariff.capitalize(),
                     users_count=0,
-                    max_users=40 if tariff.lower() == "base" else 20 if tariff.lower() == "silver" else 3
+                    max_users=40 if tariff == "base" else 20 if tariff == "silver" else 3
                 )
-                session.add(new_server)
+                session.add(server)
                 await session.commit()
-                server = new_server
             except Exception as e:
-                return None, f"❌ Ошибка создания нового сервера: {e}"
-        else:
-            server = server[0]
+                return None, f"❌ Ошибка создания сервера: {e}"
 
-        # Шаг 2. Назначить IP
+        # Шаг 3. Генерация ключей
+        priv, pub = generate_key_pair()
         ip = f"10.66.66.{server.users_count + 2}"
 
-        # Шаг 3. Генерация ключей и конфига
-        priv, pub = generate_key_pair()
-
-        # Добавляем пира на сервер по SSH
+        # Добавить peer
         success, error = add_peer_to_wireguard(
             server_ip=server.ip,
             ssh_user=server.ssh_user,
@@ -53,19 +51,19 @@ async def create_vpn_access(user_id: int, tariff: str):
         )
 
         if not success:
-            return None, f"Ошибка при добавлении пира на сервер: {error}"
+            return None, f"❌ Не удалось добавить peer: {error}"
 
-        config = build_client_config(priv, "SERVER_PUBLIC_KEY", server.ip, ip)  # ← заменить public key
-
+        config = build_client_config(priv, "SERVER_PUBLIC_KEY", server.ip, ip)
         config_path, qr_path = save_config_and_qr(config, user_id)
 
         # Шаг 4. Обновление БД
-        vpn_key = VPNKey(
-            user_id=user_id,
-            private_key=priv,
-            public_key=pub,
-            allowed_ip=ip
+        existing_key = await session.execute(
+            VPNKey.__table__.select().where(VPNKey.user_id == user_id)
         )
+        existing_key = existing_key.first()
+        if existing_key:
+            await session.execute(VPNKey.__table__.delete().where(VPNKey.user_id == user_id))
+
         user = await session.get(User, user_id)
         if not user:
             user = User(
@@ -78,7 +76,14 @@ async def create_vpn_access(user_id: int, tariff: str):
             user.expire_date = datetime.datetime.utcnow() + datetime.timedelta(days=30)
             user.server_id = server.id
 
+        vpn_key = VPNKey(
+            user_id=user.id,
+            private_key=priv,
+            public_key=pub,
+            allowed_ip=ip
+        )
         session.add(vpn_key)
+
         server.users_count += 1
         await session.commit()
 
@@ -89,7 +94,7 @@ def create_new_server_veesp(plan: str):
     api_url = "https://api.veesp.com/v1/servers"
     payload = {
         "plan": plan,
-        "region": "your-region",  # замените на нужный регион
+        "region": "your-region",
         "os": "ubuntu-20.04"
     }
     headers = {

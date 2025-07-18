@@ -9,6 +9,7 @@ router = Router()
 menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="💳 Оплата")],
+        [KeyboardButton(text="💰 Пополнить баланс")],
         [KeyboardButton(text="📲 Инструкция")],
         [KeyboardButton(text="👤 Мой аккаунт")],
         [KeyboardButton(text="🆘 Поддержка")],
@@ -36,7 +37,8 @@ async def my_account(message: Message):
                 f"👤 Ваш аккаунт:\n"
                 f"🆔 ID: {u.telegram_id}\n"
                 f"⏳ Подписка до: {u.expire_date.strftime('%Y-%m-%d %H:%M')}\n"
-                f"🖥 Сервер: {u.server_id}"
+                f"🖥 Сервер: {u.server_id or '—'}\n"
+                f"💰 Баланс: {u.balance:.2f}₽"
             )
 
 @router.message(lambda msg: msg.text == "🆘 Поддержка")

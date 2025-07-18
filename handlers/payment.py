@@ -64,4 +64,4 @@ async def check_payment(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "cancel_payment")
 async def cancel_payment(callback: CallbackQuery, state: FSMContext):
     await state.clear()
-    await callback.message.edit_text("❌ Покупка отменена.", reply_markup=menu)
+    await callback.message.answer("❌ Покупка отменена.", reply_markup=menu)

@@ -26,4 +26,4 @@ async def send_instruction(call: CallbackQuery):
 @router.callback_query(lambda c: c.data == "main_menu")
 async def go_to_main_menu(call: CallbackQuery):
     from handlers.common import menu  # импорт меню из common
-    await call.message.edit_text("🏠 Главное меню", reply_markup=menu)
+    await call.message.answer("🏠 Главное меню", reply_markup=menu)
