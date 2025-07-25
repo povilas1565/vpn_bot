@@ -11,8 +11,8 @@ from aiogram.fsm.strategy import FSMStrategy
 from config import BOT_TOKEN
 from database.db import engine
 from database.models import Base
-from handlers import instruction, payment, admin, common, topup
-from scheduler.tasks import cleanup_expired_users, delete_empty_servers
+from handlers import instruction, payment, admin, common, topup, change_server
+from scheduler.tasks import cleanup_expired_users, delete_empty_servers, check_and_create_servers
 
 print("Creating tables...")
 Base.metadata.create_all(bind=engine)
@@ -34,6 +34,7 @@ async def start_bot():
     dp.include_router(payment.router)
     dp.include_router(topup.router)
     dp.include_router(admin.router)
+    dp.include_router(change_server.router)
 
     await dp.start_polling(bot)
 
@@ -60,6 +61,7 @@ def main():
     # ⛔ Эти функции синхронные — вызываем ДО async
     cleanup_expired_users()
     delete_empty_servers()
+    check_and_create_servers()
 
     # 🚀 Запускаем асинхронные процессы
     asyncio.run(main_async())

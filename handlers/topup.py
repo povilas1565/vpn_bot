@@ -2,21 +2,32 @@
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from config import PAYMENT_URL
-from keyboards.payment_kb import topup_keyboard
+from keyboards.payment_kb import topup_keyboard, topup_amounts_keyboard  # добавь topup_amounts_keyboard
 from services.payment import check_topup
 from states.purchase import PurchaseState
 from handlers.common import menu
+from services.payment_link import create_payment_link
 
 router = Router()
 
 @router.message(F.text == "💰 Пополнить баланс")
 async def topup_handler(message: Message, state: FSMContext):
+    await state.set_state(PurchaseState.ChoosingTariff)
+    await message.answer("💵 Выберите сумму пополнения:", reply_markup=topup_amounts_keyboard())
+
+@router.callback_query(F.data.startswith("topup_"))
+async def choose_topup_amount(callback: CallbackQuery, state: FSMContext):
+    amount = int(callback.data.split("_")[1])
+    url = create_payment_link(callback.from_user.id, amount, tariff="topup")
+
     await state.set_state(PurchaseState.WaitingPayment)
-    url = f"{PAYMENT_URL}?topup=1&user={message.from_user.id}"
     await state.update_data(payment_url=url, is_topup=True)
 
-    await message.answer("💵 Перейдите по ссылке для пополнения баланса:", reply_markup=topup_keyboard(url))
+    await callback.message.edit_text(
+        f"Вы выбрали пополнение на: <b>{amount}₽</b>\n"
+        f"💳 Перейдите по ссылке для оплаты:",
+        reply_markup=topup_keyboard(url)
+    )
 
 @router.callback_query(F.data == "check_payment")
 async def check_topup_callback(callback: CallbackQuery, state: FSMContext):

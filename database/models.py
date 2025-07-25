@@ -32,6 +32,7 @@ class Server(Base):
     users_count: Mapped[int] = mapped_column(default=0)
     max_users: Mapped[int] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(default="active")
+    server_public_key: Mapped[str] = mapped_column(nullable=True)
 
     users: Mapped[list["User"]] = relationship(back_populates="server", cascade="all, delete")
 

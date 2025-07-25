@@ -13,6 +13,8 @@ menu = ReplyKeyboardMarkup(
         [KeyboardButton(text="📲 Инструкция")],
         [KeyboardButton(text="👤 Мой аккаунт")],
         [KeyboardButton(text="🆘 Поддержка")],
+        [KeyboardButton(text="📜 История платежей")],
+        [KeyboardButton(text="🔄 Сменить сервер")],
         [KeyboardButton(text="🏠 Главное меню")]
     ],
     resize_keyboard=True

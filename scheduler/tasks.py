@@ -2,7 +2,8 @@
 from datetime import datetime
 import requests
 
-from core.ssh.remote_wg import remove_peer_from_wireguard
+from core.ssh.remote_wg import remove_peer_from_wireguard, get_wireguard_public_key
+from core.wg.provisioner import create_new_server_veesp
 from database.db import SessionLocal
 from database.models import User, VPNKey, Server
 
@@ -63,3 +64,35 @@ def delete_empty_servers():
             session.delete(server)
 
         session.commit()
+
+
+def check_and_create_servers():
+    with SessionLocal() as session:
+        servers = session.query(Server).all()
+        for tariff in ["Base", "Silver", "Gold"]:
+            filtered = [s for s in servers if s.type == tariff]
+            free_servers = [s for s in filtered if s.users_count < s.max_users]
+            if not free_servers:
+                # Создаём новый сервер для тарифа
+                try:
+                    server_info = create_new_server_veesp(tariff.lower())
+                    server_public_key, err = get_wireguard_public_key(
+                        server_info["ip"], "root", server_info["password"]
+                    )
+                    if err:
+                        print(f"Ошибка получения ключа: {err}")
+                        continue
+                    new_server = Server(
+                        ip=server_info["ip"],
+                        ssh_user="root",
+                        ssh_password=server_info["password"],
+                        type=tariff,
+                        users_count=0,
+                        max_users=40 if tariff == "Base" else 20 if tariff == "Silver" else 3,
+                        server_public_key=server_public_key
+                    )
+                    session.add(new_server)
+                    session.commit()
+                    print(f"Создан новый сервер для тарифа {tariff}")
+                except Exception as e:
+                    print(f"Ошибка создания сервера для {tariff}: {e}")

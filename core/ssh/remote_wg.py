@@ -44,3 +44,18 @@ def remove_peer_from_wireguard(server_ip, ssh_user, ssh_password, public_key):
 
     except Exception as e:
         return False, str(e)
+
+def get_wireguard_public_key(server_ip, ssh_user, ssh_password):
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(server_ip, username=ssh_user, password=ssh_password)
+
+        # Команда для получения ключа
+        cmd = "sudo cat /etc/wireguard/publickey"
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        public_key = stdout.read().decode().strip()
+        ssh.close()
+        return public_key, None
+    except Exception as e:
+        return None, str(e)
