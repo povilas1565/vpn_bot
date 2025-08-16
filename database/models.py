@@ -2,8 +2,10 @@
 from sqlalchemy import Integer, String, DateTime, Float, ForeignKey, Column
 import datetime
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class User(Base):
     __tablename__ = "users"
@@ -21,6 +23,7 @@ class User(Base):
     vpn_keys: Mapped[list["VPNKey"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     payments: Mapped[list["Payment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
+
 class Server(Base):
     __tablename__ = "servers"
 
@@ -36,6 +39,7 @@ class Server(Base):
 
     users: Mapped[list["User"]] = relationship(back_populates="server", cascade="all, delete")
 
+
 class VPNKey(Base):
     __tablename__ = "vpn_keys"
 
@@ -46,6 +50,7 @@ class VPNKey(Base):
     allowed_ip: Mapped[str]
 
     user: Mapped["User"] = relationship(back_populates="vpn_keys")
+
 
 class Payment(Base):
     __tablename__ = "payments"

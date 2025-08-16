@@ -6,6 +6,8 @@ from core.ssh.remote_wg import remove_peer_from_wireguard
 from core.wg.provisioner import create_vpn_access
 import os
 
+from handlers.common import menu
+
 router = Router()
 
 

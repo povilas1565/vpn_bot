@@ -3,20 +3,22 @@ import logging
 
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import JSONResponse
+
+from config import FREEKASSA_SECRET_KEY_2
 from database.db import SessionLocal
 from database.models import Payment, User
 import hashlib
 
 app = FastAPI()
 
-SECRET_KEY_2 = "=XaOJ4ginP@&8xZ"
-
 logging.basicConfig(level=logging.INFO)
 
+
 def verify_signature(m: str, oa: str, o: str, s: str) -> bool:
-    sign_str = f"{m}:{oa}:{o}:{SECRET_KEY_2}"
+    sign_str = f"{m}:{oa}:{o}:{FREEKASSA_SECRET_KEY_2}"
     expected = hashlib.md5(sign_str.encode()).hexdigest()
     return expected == s
+
 
 @app.post("/payment/callback")
 async def payment_callback(
@@ -55,7 +57,8 @@ async def payment_callback(
                 created_at=datetime.datetime.utcnow()
             )
             session.add(payment)
-            logging.info(f"💰 Payment received: user_id={us_user_id}, tariff={us_tariff}, amount={amount}, order_id={o}")
+            logging.info(
+                f"💰 Payment received: user_id={us_user_id}, tariff={us_tariff}, amount={amount}, order_id={o}")
             session.commit()
 
         return JSONResponse(content={"status": "ok"})

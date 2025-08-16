@@ -3,6 +3,7 @@
 from database.db import SessionLocal
 from database.models import Payment
 
+
 def check_payments(user_id: int, tariff: str) -> str:
     with SessionLocal() as session:
         payment = session.query(Payment).filter(
@@ -13,6 +14,7 @@ def check_payments(user_id: int, tariff: str) -> str:
         if not payment:
             return "not_found"
         return payment.status
+
 
 def check_topup(user_id: int) -> tuple[bool, float]:
     with SessionLocal() as session:
@@ -26,6 +28,7 @@ def check_topup(user_id: int) -> tuple[bool, float]:
             return True, payment.amount
         return False, 0.0
 
+
 def delete_old_unconfirmed_payments(days: int = 1):
     threshold = datetime.datetime.utcnow() - datetime.timedelta(days=days)
     with SessionLocal() as session:
@@ -35,6 +38,7 @@ def delete_old_unconfirmed_payments(days: int = 1):
         ).delete()
         session.commit()
     return deleted
+
 
 def get_user_payments(user_id: int):
     with SessionLocal() as session:

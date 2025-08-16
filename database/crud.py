@@ -10,6 +10,7 @@ async def get_user_by_telegram_id(telegram_id: int):
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
+
 async def create_user(telegram_id: int, expire_date, server_id: int):
     async with SessionLocal() as session:
         user = User(
