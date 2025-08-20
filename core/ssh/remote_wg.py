@@ -110,4 +110,3 @@ PostDown = ufw route delete allow in on wg0 out on eth0
 
     except Exception as e:
         return None, str(e)
-

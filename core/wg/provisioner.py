@@ -3,12 +3,11 @@ import time
 import paramiko
 import requests
 
+from config import VEESP_TOKEN
 from core.ssh.remote_wg import add_peer_to_wireguard, get_wireguard_public_key, setup_wireguard_interface
 from core.wg.generator import generate_key_pair, build_client_config, save_config_and_qr
 from database.db import SessionLocal
 from database.models import Server, User, VPNKey
-
-VEESP_API_KEY = "ВАШ_API_КЛЮЧ"
 
 # Регионы и OS для тарифов
 TARIFF_CONFIG = {
@@ -128,7 +127,7 @@ def create_new_server_veesp(plan: str, region: str = "fra1", os_version: str = "
         "os": os_version
     }
     headers = {
-        "Authorization": f"Bearer {VEESP_API_KEY}",
+        "Authorization": f"Bearer {VEESP_TOKEN}",
         "Content-Type": "application/json"
     }
 
