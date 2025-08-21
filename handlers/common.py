@@ -45,7 +45,7 @@ async def my_account(message: Message):
 
 @router.message(lambda msg: msg.text == "🆘 Поддержка")
 async def support(message: Message):
-    await message.answer("📞 Напишите нашему администратору: @YourAdminUsername")
+    await message.answer("📞 Напишите нашему администратору: @Ar4im")
 
 @router.message(lambda msg: msg.text == "🏠 Главное меню")
 async def main_menu(message: Message):
