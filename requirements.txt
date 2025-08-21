@@ -1,4 +1,4 @@
-﻿aiogram==2.25.1
+﻿aiogram==3.4.1
 python-dotenv==1.0.1
 aiohttp==3.9.5
 SQLAlchemy==2.0.30
@@ -23,3 +23,5 @@ setuptools~=58.1.0
 typing_extensions~=4.12.2
 packaging~=21.0
 loguru
+psycopg2-binary
+python-multipart

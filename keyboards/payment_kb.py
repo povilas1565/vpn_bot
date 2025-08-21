@@ -1,9 +1,8 @@
-﻿from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-
+﻿from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from constants.tariffs import TARIFF_TITLES
 
 
-def tariff_keyboard():
+def tariff_keyboard() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text=TARIFF_TITLES[key], callback_data=f"tariff_{key}")]
         for key in TARIFF_TITLES
@@ -11,7 +10,8 @@ def tariff_keyboard():
     buttons.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data="cancel_payment")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def payment_keyboard(payment_url: str):
+
+def payment_keyboard(payment_url: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="💳 Перейти к оплате", url=payment_url)],
@@ -21,7 +21,8 @@ def payment_keyboard(payment_url: str):
         ]
     )
 
-def topup_keyboard(payment_url: str):
+
+def topup_keyboard(payment_url: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="💳 Перейти к оплате", url=payment_url)],
@@ -30,7 +31,9 @@ def topup_keyboard(payment_url: str):
             [InlineKeyboardButton(text="🏠 Главное меню", callback_data="cancel_payment")]
         ]
     )
-def topup_amounts_keyboard():
+
+
+def topup_amounts_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [

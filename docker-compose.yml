@@ -37,7 +37,7 @@ services:
     depends_on:
       - app
     ports:
-      - "80:80"
+      - "8084:80"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
     networks:
